@@ -1,0 +1,5 @@
+BiometricNo,Name,Date,Time
+001,Jeanly Gwapa,2025/03/18, 11:45:51
+002,Althon Dimple,2025/03/19, 12:44:51
+001,Jeanly Gwapa,2025/03/18, 15:45:51
+002,Althon Dimple,2025/03/19, 16:44:51
