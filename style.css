@@ -1,0 +1,101 @@
+html {
+    font-family: sans-serif;
+    font-weight: bolder;
+    font-size: 14px;
+}
+
+.grand-container {
+    border: 3px solid black;
+    width: 950px;
+    margin: 20px auto;
+}
+
+.header-container {
+    border-bottom: 3px solid black;
+    text-align: center;
+    padding: 5px;
+}
+
+.main-container {
+    padding: 15px;
+}
+
+.main-container .main-header-container {
+
+}
+
+.main-container .main-body-container {
+    
+}
+
+.main-container .main-footer-container {
+    
+}
+
+.main-header-container .header-title {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.main-header-container .header-information {
+    display: flex;
+    justify-content: space-between;
+}
+
+
+.input-group {
+
+}
+
+.input-container {
+
+}
+
+.dtr-table {
+    margin-top: 20px;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dtr-table th, td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid black;
+}
+
+.dtr-table td {
+    font-weight: normal;
+}
+
+.dtr-table .label-col {
+    text-align: left !important;
+    font-weight: bolder;
+}
+
+input {
+    border: 0;
+    outline: 0;
+    width: auto;
+}
+.regular-hours-cell {
+    width: 40px;
+}
+
+.regular-hours {
+    width: 40px;  /* Adjust width */
+    text-align: center;
+    -moz-appearance: textfield; /* Firefox */
+}
+
+/* Remove increment/decrement buttons in Chrome, Safari, Edge, Opera */
+.regular-hours::-webkit-outer-spin-button,
+.regular-hours::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Remove increment/decrement buttons in Firefox */
+.regular-hours {
+    -moz-appearance: textfield;
+}
+
