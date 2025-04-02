@@ -42,44 +42,48 @@ document.addEventListener("DOMContentLoaded", function () {
         reader.onload = function (e) {
             let csvData = e.target.result;
             let rows = csvData.split("\n").map(row => row.split(",").map(cell => cell.trim()));
-
+        
             if (rows.length < 2) return;
-
+        
             let headers = rows[0]; 
             let timeRecords = {};
-
+        
             rows.slice(1).forEach(row => {
                 if (row.length < 4) return;
-
+        
                 let biometricNo = row[0];
                 let name = row[1];
-                let date = row[2].replace(/\//g, "-"); // Convert "YYYY/MM/DD" to "YYYY-MM-DD"
+                let rawDate = row[2]; // Format: DD/MM/YYYY
                 let time = row[3];
-
+        
+                // Convert DD/MM/YYYY to YYYY-MM-DD
+                let [day, month, year] = rawDate.split("/");
+                let date = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+        
                 let key = `${biometricNo}_${date}`;
-
+        
                 if (!timeRecords[key]) {
                     timeRecords[key] = { Name: name, BiometricNo: biometricNo, Date: date, TimeIn: "", TimeOut: "" };
                 }
-
+        
                 if (timeRecords[key].TimeIn === "") {
                     timeRecords[key].TimeIn = time;
                 } else {
                     timeRecords[key].TimeOut = time;
                 }
             });
-
+        
             let fromDate = document.getElementById("start-date").value;
             let toDate = document.getElementById("end-date").value;
-
+        
             if (!fromDate || !toDate) {
                 alert("Please select a valid date range.");
                 return;
             }
-
+        
             let container = document.getElementById("container");
             container.innerHTML = "";
-
+        
             let groupedData = {};
             for (let key in timeRecords) {
                 let record = timeRecords[key];
@@ -88,13 +92,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
                 groupedData[record.BiometricNo].push(record);
             }
-
+        
             for (let biometricNo in groupedData) {
                 let employeeRecords = groupedData[biometricNo];
                 let employeeName = employeeRecords[0].Name;
-
+        
                 let dateRows = generateDateRows(fromDate, toDate, employeeRecords);
-
+        
                 let html = `
                     <div class="grand-container">
                         <div class="header-container">pppp <br> k</div>
@@ -153,7 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 `;
                 container.innerHTML += html;
             }
-
+        
             // Ensure time conversion runs after the elements exist
             convertTimeFormat();
         };
