@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <td class="office-hours">${isWeekend ? "" : officeHours || "0"}</td>
                     <td class="total-hours-worked">${isWeekend ? "" : totalHours || "0"}</td>
                     <td class="regular-hours-cell">
-                        <input type="number" class="regular-hours" value="${regularHours}" ${isWeekend ? "disabled" : ""} oninput="updateTotalRegularHours(event)">
+                        <input type="number" class="regular-hours" value="${regularHours}" ${isWeekend ? "disabled" : ""} oninput="updateTotalRegularHours(event), updateWorkedHours(this, event)">
                     </td>
                     <td class="overtime-hours">${isWeekend ? "" : overtimeHours.toFixed(2) || "0"}</td>
                     <td></td>
