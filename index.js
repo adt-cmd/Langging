@@ -166,7 +166,9 @@ document.addEventListener("DOMContentLoaded", function () {
         let currentDate = new Date(fromDate);
         let endDate = new Date(toDate);
         let totalWorkedHours = 0;
+        let totalOfficeHours = 0;
         let totalRegularHours = 0;
+        let totalOvertimeHours = 0; // Track total overtime hours
     
         while (currentDate <= endDate) {
             let formattedDate = currentDate.toISOString().split("T")[0];
@@ -180,10 +182,17 @@ document.addEventListener("DOMContentLoaded", function () {
             let isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
             let regularHours = isWeekend ? 0 : 8; 
     
-            // Default empty fields to "0" to avoid NaN errors
-            let totalHours = calculateWorkedHours(timeIn, timeOut);
+            // Calculate worked hours
+            let officeHours = calculateWorkedHours(timeIn, timeOut, false);
+            let totalHours = calculateWorkedHours(timeIn, timeOut, true);
+    
+            totalOfficeHours += parseFloat(officeHours) || 0;
             totalWorkedHours += parseFloat(totalHours) || 0;
             totalRegularHours += parseFloat(regularHours) || 0;
+    
+            // Calculate overtime: totalWorkedHours - regularHours, in whole hours
+            let overtimeHours = (!isWeekend && totalHours > regularHours) ? Math.floor(totalHours - regularHours) : 0;
+            totalOvertimeHours += overtimeHours; // Add to total overtime
     
             rows += `
                 <tr>
@@ -197,12 +206,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         <input type="time" class="time-input-field" value="${timeOut}" oninput="updateWorkedHours(this, event)">
                         <span class="converted-time-container">${formatAMPM(timeOut)}</span>
                     </td>
-                    <td></td>
-                    <td class="total-hours-worked">${totalHours || "0"}</td>
+                    <td class="office-hours">${isWeekend ? "" : officeHours || "0"}</td>
+                    <td class="total-hours-worked">${isWeekend ? "" : totalHours || "0"}</td>
                     <td class="regular-hours-cell">
                         <input type="number" class="regular-hours" value="${regularHours}" ${isWeekend ? "disabled" : ""} oninput="updateTotalRegularHours(event)">
                     </td>
-                    <td></td>
+                    <td class="overtime-hours">${isWeekend ? "" : overtimeHours.toFixed(2) || "0"}</td>
                     <td></td>
                 </tr>
             `;
@@ -210,9 +219,14 @@ document.addEventListener("DOMContentLoaded", function () {
             currentDate.setDate(currentDate.getDate() + 1);
         }
     
-        // Summary rows
+        // Summary rows with total overtime hours
         rows += `
-            <tr><td></td><td></td><td colspan="2" class="label-col">Total Hours:</td><td></td><td class="totalWorkedHours">${totalWorkedHours.toFixed(2)}</td><td class="totalRegularHours">${totalRegularHours.toFixed(2)}</td><td></td><td></td></tr>
+            <tr><td></td><td></td><td colspan="2" class="label-col">Total Hours:</td>
+                <td class="totalOfficeHours">${totalOfficeHours.toFixed(2)}</td>
+                <td class="totalWorkedHours">${totalWorkedHours.toFixed(2)}</td>
+                <td class="totalRegularHours">${totalRegularHours.toFixed(2)}</td>
+                <td class="totalOvertimeHours">${totalOvertimeHours.toFixed(2)}</td><td></td>
+            </tr>
             <tr><td></td><td></td><td colspan="2" class="label-col">Absent (hrs):</td><td></td><td></td><td></td><td></td><td></td></tr>
             <tr><td></td><td></td><td colspan="2" class="label-col">Late (hrs):</td><td></td><td></td><td></td><td></td><td></td></tr>
             <tr><td></td><td></td><td colspan="2" class="label-col">Leave (hrs):</td><td></td><td></td><td></td><td></td><td></td></tr>
@@ -266,14 +280,21 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Helper function to calculate worked hours
-function calculateWorkedHours(timeIn, timeOut) {
-    if (!timeIn || !timeOut) return 0;  // Default to 0 instead of NaN
+function calculateWorkedHours(timeIn, timeOut, withBreak) {
+    if (!timeIn || !timeOut) return withBreak ? "-1.50" : "0.00";
 
     let inTime = new Date(`1970-01-01T${timeIn}`);
     let outTime = new Date(`1970-01-01T${timeOut}`);
-    let diff = (outTime - inTime) / (1000 * 60 * 60); 
+    let diff = (outTime - inTime) / (1000 * 60 * 60); // Convert milliseconds to hours
+    if (withBreak) {
+        if (diff === 0) return "-1.50"; // Explicitly handle 0-hour cases
+        return (diff - 1.5).toFixed(2); // Deduct 1.5 hours
+    } else {
+        if (diff === 0) return "0"; // Explicitly handle 0-hour cases
+        return (diff).toFixed(2);
+    }
 
-    return diff > 0 ? diff.toFixed(2) : "0";
+  
 }
 
 // Function to update total regular hours
@@ -292,14 +313,46 @@ function updateWorkedHours(input, event) {
     let timeIn = row.querySelectorAll('input[type="time"]')[0].value;
     let timeOut = row.querySelectorAll('input[type="time"]')[1].value;
     let totalCell = row.querySelector(".total-hours-worked");
+    let officeCell = row.querySelector(".office-hours");
+    let overtimeCell = row.querySelector(".overtime-hours");
+    let regularHoursInput = row.querySelector(".regular-hours");
     let table = event.target.closest("table");
 
-    let newTotal = calculateWorkedHours(timeIn, timeOut);
-    totalCell.textContent = newTotal || "0";  // Default to 0 if empty
+    // Calculate worked hours
+    let newOfficeTotal = calculateWorkedHours(timeIn, timeOut, false);
+    officeCell.textContent = newOfficeTotal || "0"; // Default to 0 if empty
 
-    let totalWorked = 0;
+    let newWorkTotal = calculateWorkedHours(timeIn, timeOut, true);
+    totalCell.textContent = newWorkTotal || "0"; // Default to 0 if empty
+
+    // Get total office and worked hours
+    let totalOffice = 0, totalWorked = 0, totalRegular = 0, totalOvertime = 0;
+
+    table.querySelectorAll('.office-hours').forEach(cell => {
+        totalOffice += parseFloat(cell.textContent) || 0;
+    });
+
     table.querySelectorAll('.total-hours-worked').forEach(cell => {
         totalWorked += parseFloat(cell.textContent) || 0;
     });
+
+    table.querySelectorAll('.regular-hours').forEach(input => {
+        totalRegular += parseFloat(input.value) || 0;
+    });
+
+    // Calculate overtime
+    let regularHours = parseFloat(regularHoursInput.value) || 8; // Default to 8 if empty
+    let overtimeHours = (newWorkTotal > regularHours) ? Math.floor(newWorkTotal - regularHours) : 0;
+    overtimeCell.textContent = overtimeHours.toFixed(2); // Update overtime hours
+
+    // Get total overtime hours from table
+    table.querySelectorAll('.overtime-hours').forEach(cell => {
+        totalOvertime += parseFloat(cell.textContent) || 0;
+    });
+
+    // Update summary row
+    table.querySelector(".totalOfficeHours").textContent = totalOffice.toFixed(2);
     table.querySelector(".totalWorkedHours").textContent = totalWorked.toFixed(2);
+    table.querySelector(".totalRegularHours").textContent = totalRegular.toFixed(2);
+    table.querySelector(".totalOvertimeHours").textContent = totalOvertime.toFixed(2);
 }
