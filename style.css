@@ -72,8 +72,9 @@ html {
     font-weight: bolder;
 }
 
-input {
+input, textarea {
     border: 0;
+    resize: vertical;
     outline: 0;
     width: auto;
 }
@@ -88,14 +89,21 @@ input {
 }
 
 /* Remove increment/decrement buttons in Chrome, Safari, Edge, Opera */
-.regular-hours::-webkit-outer-spin-button,
-.regular-hours::-webkit-inner-spin-button {
+.regular-hours, .small-input::-webkit-outer-spin-button,
+.regular-hours, .small-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
 /* Remove increment/decrement buttons in Firefox */
-.regular-hours {
+.regular-hours, .small-input {
     -moz-appearance: textfield;
+}
+
+.small-input {
+    width: 60px; /* Adjust width to your preference */
+    padding: 2px;
+    font-size: 12px;
+    text-align: center;
 }
 
